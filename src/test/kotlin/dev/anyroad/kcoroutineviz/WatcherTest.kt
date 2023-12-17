@@ -1,6 +1,8 @@
 package dev.anyroad.kcoroutineviz
 
-import dev.anyroad.kcoroutineviz.Watcher.Companion.watcher
+import dev.anyroad.kcoroutineviz.diagram.DiagramBuilder
+import dev.anyroad.kcoroutineviz.svg.SvgDiagramDrawer
+import dev.anyroad.kcoroutineviz.watcher.Watcher.Companion.watcher
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
@@ -32,8 +34,8 @@ class WatcherTest : FunSpec({
         println(w)
         val diagram = DiagramBuilder().buildDiagram(w)
         println(diagram)
-        val drawer = SvgDiagramDrawer(diagram)
-        val svg = drawer.draw(1024)
+        val drawer = SvgDiagramDrawer()
+        val svg = drawer.draw(diagram, 1024)
         println(svg)
         Files.write(Paths.get("src/main/resources/diagram.svg"), listOf(svg))
     }

@@ -1,4 +1,4 @@
-package dev.anyroad.kcoroutineviz
+package dev.anyroad.kcoroutineviz.watcher
 
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
@@ -9,7 +9,7 @@ class Watcher(
     val name: String,
     val parent: Watcher? = null
 ) {
-    var exception: Throwable? = null
+    private var exception: Throwable? = null
 
     var children = CopyOnWriteArrayList<Watcher>()
 
@@ -19,13 +19,24 @@ class Watcher(
 
     private var timeElapsed: Duration = Duration.ZERO
 
-    var absoluteTimeStart: Duration = Duration.ZERO
-        private set
+    private var absoluteTimeStart: Duration = Duration.ZERO
 
     val tracePoints = CopyOnWriteArrayList<TracePoint>()
 
-    var timeoutAt: Duration = Duration.ZERO
+    private var timeoutAt: Duration = Duration.ZERO
         private set
+
+    val durationInMillis: Int
+        get() = duration().inWholeMilliseconds.toInt()
+
+    val absoluteTimeStartInMillis: Int
+        get() = absoluteTimeStart.inWholeMilliseconds.toInt()
+
+    val exceptionThrown: Boolean
+        get() = exception != null
+
+    val exceptionMessage: String
+        get() = exception?.message ?: ""
 
     private fun beforeStart() {
         if (isRunning) {
@@ -66,7 +77,7 @@ class Watcher(
         return childWatcher
     }
 
-    fun duration(): Duration {
+    private fun duration(): Duration {
         return if (timeElapsed > timeoutAt) {
             timeElapsed
         } else {

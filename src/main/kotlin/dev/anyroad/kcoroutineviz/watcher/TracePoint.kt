@@ -1,4 +1,4 @@
-package dev.anyroad.kcoroutineviz
+package dev.anyroad.kcoroutineviz.watcher
 
 import kotlin.time.Duration
 
@@ -8,5 +8,7 @@ data class TracePoint(
     val color: String,
     val threadId: Long = Thread.currentThread().id,
     val threadName: String = Thread.currentThread().name
-
-)
+) {
+    val absoluteTimeInMillis: Int
+        get() = timeElapsed.inWholeMilliseconds.toInt()
+}
