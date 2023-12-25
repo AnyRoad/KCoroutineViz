@@ -1,8 +1,7 @@
 package dev.anyroad.kcoroutineviz
 
 import dev.anyroad.kcoroutineviz.diagram.DiagramBuilder
-import dev.anyroad.kcoroutineviz.svg.HorizontalCoordinateScaler
-import dev.anyroad.kcoroutineviz.svg.SvgDiagramDrawer
+import dev.anyroad.kcoroutineviz.svg.*
 import dev.anyroad.kcoroutineviz.watcher.Watcher.Companion.watcher
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.async
@@ -44,13 +43,19 @@ class WatcherTest : FunSpec({
                         delay(100)
                     }
                 }
+                addTracePoint("after")
             }
         }
 
         println(w)
         val diagram = DiagramBuilder().buildDiagram(w)
         println(diagram)
-        val drawer = SvgDiagramDrawer(scaler = HorizontalCoordinateScaler(diagram.fullBoxWidth, 1024, 10))
+        val scaler = HorizontalCoordinateScaler(diagram.fullBoxWidth, 1024, 10)
+        val drawer = SvgDiagramDrawer(
+            scaler = scaler,
+            axesDrawer = AxesDrawer(SecondAxesSettings()),
+            marksFooterDrawer = MarksFooterDrawer(MarksSettings())
+        )
         val svg = drawer.draw(diagram)
         println(svg)
         Files.write(Paths.get("src/main/resources/diagram.svg"), listOf(svg))

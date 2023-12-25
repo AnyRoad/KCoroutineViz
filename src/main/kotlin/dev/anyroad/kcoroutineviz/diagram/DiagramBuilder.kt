@@ -39,7 +39,7 @@ class DiagramBuilder {
     private fun toCoroutineMark(point: TracePoint, markIndex: Int): CoroutineMark =
         CoroutineMark(
             timeMillis = point.absoluteTimeInMillis,
-            title = "${point.description}[thread id=${point.threadId}]",
+            title = "${point.description}[tid=${point.threadId}]",
             color = point.color,
             index = markIndex,
             drawInlineTitle = point.drawInlineTitle

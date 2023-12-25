@@ -6,7 +6,9 @@ import kotlin.math.max
 
 class SvgDiagramDrawer(
     private val settings: SvgRenderingSettings = SvgRenderingSettings(),
-    private val scaler: HorizontalCoordinateScaler
+    private val scaler: HorizontalCoordinateScaler,
+    private val axesDrawer: AxesDrawer,
+    private val marksFooterDrawer: MarksFooterDrawer
 ) {
 
     fun draw(coroutineDiagram: CoroutineDiagram): String {
@@ -16,10 +18,11 @@ class SvgDiagramDrawer(
             style {
                 body = settings.bodyStyle
             }
+            val levelTransparencyStep = 255 / coroutineDiagram.maxNestingLevel
 
-            val totalHeight = drawDiagram(this, coroutineDiagram, 0)
-            val heightWithAxes = drawAxes(this, resultWidth, totalHeight)
-            val heightWithMarks = drawMarksFooter(this, coroutineDiagram, heightWithAxes)
+            val totalHeight = drawDiagram(this, coroutineDiagram, 0, levelTransparencyStep)
+            val heightWithAxes = totalHeight + axesDrawer.drawAxes(this, resultWidth, totalHeight, scaler)
+            val heightWithMarks = heightWithAxes + marksFooterDrawer.drawMarksFooter(this, coroutineDiagram, heightWithAxes, scaler)
             height = (heightWithMarks + scaler.margin).toString()
         }
 
@@ -32,78 +35,18 @@ class SvgDiagramDrawer(
             .replace("&#55357;&#56656;", "🕐")
     }
 
-    private fun drawMarksFooter(svg: SVG, coroutineDiagram: CoroutineDiagram, heightWithAxes: Int): Int {
-        if (coroutineDiagram.allMarksAreInline) {
-            return heightWithAxes
-        }
-
-        var yOffset = heightWithAxes
-        val marksSettings = settings.marksSettings
-
-        coroutineDiagram.marks.forEach { mark ->
-            svg.text {
-                x = (scaler.margin + marksSettings.footerLineLeftMargin).toString()
-                y = (yOffset + marksSettings.footerLineHeight).toString()
-                fontSize = marksSettings.footerFontSize.toString()
-                body = "[${mark.index}] : ${mark.title}"
-            }
-            yOffset += marksSettings.footerLineHeight
-        }
-
-        coroutineDiagram.childrenRows.forEach {
-            it.children.forEach { c ->
-                yOffset = drawMarksFooter(svg, c, yOffset)
-            }
-        }
-
-        return yOffset
-    }
-
-    private fun drawAxes(svg: SVG, resultWidth: Int, totalHeight: Int): Int {
-        val axesSettings = settings.axesSettings
-        val spaceBetweenSecondAxes = axesSettings.spaceBetweenAxes
-        val maxMillisToTitleEveryAxe = axesSettings.maxMillisToTitleEveryAxe
-        val axesSpace =
-            if (resultWidth < maxMillisToTitleEveryAxe) spaceBetweenSecondAxes else spaceBetweenSecondAxes * 2
-
-        var axeX = 0
-        while (axeX < resultWidth) {
-            val xValue = scaler.scaleHorizontalCoordinate(axeX)
-            svg.line {
-                x1 = xValue
-                y1 = "0"
-
-                x2 = xValue
-                y2 = totalHeight.toString()
-
-                stroke = axesSettings.color
-                attributes["stroke-dasharray"] = axesSettings.lineDashStroke
-            }
-            if (axeX % axesSpace == 0) {
-                svg.text {
-                    x = scaler.scaleHorizontalCoordinate(axeX, -10)
-                    y = (totalHeight + 15).toString()
-                    fill = axesSettings.titleColor
-                    body = "${axeX}ms"
-                }
-            }
-            axeX += 50
-        }
-
-        return totalHeight + 25
-    }
-
     private fun drawDiagram(
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
         yOffset: Int,
+        levelTransparencyStep: Int,
     ): Int {
         var endOffset = yOffset
 
         val parentRect = svg.rect {
             x = scaler.scaleHorizontalCoordinate(coroutineDiagram.startMillis)
             y = yOffset.toString()
-            fill = calculateDiagramColor(coroutineDiagram)
+            fill = calculateDiagramColor(coroutineDiagram, levelTransparencyStep)
 
             width = scaler.scaleWidth(coroutineDiagram.fullBoxWidth - 1)
         }
@@ -132,7 +75,7 @@ class SvgDiagramDrawer(
         coroutineDiagram.childrenRows.forEachIndexed { index, row ->
             var rowOffset = endOffset
             row.children.forEach { childDiagram ->
-                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset))
+                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset, levelTransparencyStep))
             }
             endOffset =
                 rowOffset + if (index == coroutineDiagram.childrenRows.size - 1) settings.lastRowMargin else settings.betweenRowMargin
@@ -177,6 +120,12 @@ class SvgDiagramDrawer(
         return newEndOffset
     }
 
-    private fun calculateDiagramColor(coroutineDiagram: CoroutineDiagram) =
-        settings.mainColor + Integer.toHexString((coroutineDiagram.nestingLevel + 1) * 35)
+    private fun calculateDiagramColor(coroutineDiagram: CoroutineDiagram, levelTransparencyStep: Int): String {
+        val transparency = when(coroutineDiagram.nestingLevel) {
+            0 -> levelTransparencyStep / 4
+            else -> levelTransparencyStep
+        }
+        val transparencyHex = Integer.toHexString(transparency)
+        return settings.mainColor + (if (transparencyHex.length == 1) "0" else "") + transparencyHex
+    }
 }

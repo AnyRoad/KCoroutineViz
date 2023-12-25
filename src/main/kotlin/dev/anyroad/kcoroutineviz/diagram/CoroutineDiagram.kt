@@ -14,6 +14,8 @@ data class ChildrenRow(
     val children: List<CoroutineDiagram>
 ) {
     val lastBlockEndsMillis: Int = children.maxOfOrNull(CoroutineDiagram::lastBlockEndsMillis) ?: 0
+
+    val maxNestingLevel: Int = children.maxOfOrNull(CoroutineDiagram::maxNestingLevel) ?: 0
 }
 
 data class CoroutineDiagram(
@@ -30,6 +32,8 @@ data class CoroutineDiagram(
 
     val fullBoxWidth = lastBlockEndsMillis - startMillis
 
-    val allMarksAreInline: Boolean = marks.all(CoroutineMark::drawInlineTitle)
-            && childrenRows.all { ch -> ch.children.all(CoroutineDiagram::allMarksAreInline) }
+    val allMarksIncludingChildren: List<CoroutineMark> = marks +
+            childrenRows.flatMap { ch -> ch.children.flatMap (CoroutineDiagram::marks) }
+
+    val maxNestingLevel = max(childrenRows.maxOfOrNull(ChildrenRow::maxNestingLevel) ?: 0, nestingLevel)
 }

@@ -5,7 +5,9 @@ data class SecondAxesSettings(
     val maxMillisToTitleEveryAxe: Int = 500,
     val color: String = "#55555555",
     val lineDashStroke: String = "4 1",
-    val titleColor: String = "gray"
+    val titleColor: String = "gray",
+    val fontSize: Int = 14,
+    val margin: Int = 3
 )
 
 data class MarksSettings(
@@ -24,12 +26,11 @@ data class TitleSettings(
     val margin: Int = 5,
     val noTitleOffset: Int = 5,
     val leftMargin: Int = 5,
-    val fontSize: Int = 16,
+    val fontSize: Int = 13,
 )
 
 data class SvgRenderingSettings(
     val mainColor: String = "#00DD00",
-    val axesSettings: SecondAxesSettings = SecondAxesSettings(),
     val marksSettings: MarksSettings = MarksSettings(),
     val titleSettings: TitleSettings = TitleSettings(),
     val lastRowMargin: Int = 5,

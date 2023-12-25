@@ -16,6 +16,6 @@ class HorizontalCoordinateScaler(
     }
 
     fun scaleFullWidth(width: Int): String {
-        return (width * scale + 2 * margin).toString()
+        return (width * scale + 4 * margin).toString()
     }
 }
