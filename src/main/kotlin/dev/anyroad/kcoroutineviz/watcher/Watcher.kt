@@ -92,8 +92,14 @@ class Watcher(
         }
     }
 
-    fun addTracePoint(description: String) {
-        tracePoints.add(TracePoint(absoluteTimeStart + timeMark.elapsedNow(), description, "RED"))
+    fun addTracePoint(description: String, color: String = "red", drawInlineTitle: Boolean = false) {
+        val point = TracePoint(
+            timeElapsed = absoluteTimeStart + timeMark.elapsedNow(),
+            description = description,
+            color = color,
+            drawInlineTitle = drawInlineTitle
+        )
+        tracePoints.add(point)
     }
 
     suspend operator fun <T> invoke(block: suspend Watcher.() -> T): T? {

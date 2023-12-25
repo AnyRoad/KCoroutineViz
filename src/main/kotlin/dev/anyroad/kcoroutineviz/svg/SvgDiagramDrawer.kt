@@ -4,64 +4,25 @@ import com.github.nwillc.ksvg.elements.SVG
 import dev.anyroad.kcoroutineviz.diagram.CoroutineDiagram
 import kotlin.math.max
 
-data class SecondAxesSettings(
-    val spaceBetweenAxes: Int = 50,
-    val maxMillisToTitleEveryAxe: Int = 500,
-    val color: String = "gray",
-    val lineDashStroke: String = "4 1",
-    val titleColor: String = "gray"
-)
+class SvgDiagramDrawer(
+    private val settings: SvgRenderingSettings = SvgRenderingSettings(),
+    private val scaler: HorizontalCoordinateScaler
+) {
 
-data class MarksSettings(
-    val radius: Int = 4,
-    val markSectionHeight: Int = 20,
-    val inlineSectionHeight: Int = 20,
-    val inlineSectionFontSize: Int = 14,
-    val inlineSectionLeftMargin: Int = 10,
-
-    val footerLineHeight: Int = 20,
-    val footerLineLeftMargin: Int = 5,
-    val footerFontSize: Int = 14,
-)
-
-data class TitleSettings(
-    val titleSectionHeight: Int = 20,
-    val noTitleOffset: Int = 5,
-    val leftMargin: Int = 5,
-    val fontSize: Int = 16,
-)
-
-data class SvgRenderingSettings(
-    val margin: Int = 10,
-    val mainColor: String = "#00DD00",
-    val axesSettings: SecondAxesSettings = SecondAxesSettings(),
-    val marksSettings: MarksSettings = MarksSettings(),
-    val titleSettings: TitleSettings = TitleSettings(),
-    val lastRowMargin: Int = 5,
-    val betweenRowMargin: Int = 10,
-    val bodyStyle: String = """
-         svg .black-stroke { stroke: black; stroke-width: 2; }
-         svg .fur-color { fill: white; }
-     """.trimIndent()
-)
-
-class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRenderingSettings()) {
-
-    fun draw(coroutineDiagram: CoroutineDiagram, resultWidth: Int): String {
+    fun draw(coroutineDiagram: CoroutineDiagram): String {
         val svg = SVG.svg(true) {
-            // height = coroutineDiagram.endsMillis
-            width = resultWidth.toString()
+            val resultWidth = coroutineDiagram.lastBlockEndsMillis
+            width = scaler.scaleFullWidth(resultWidth)
             style {
                 body = settings.bodyStyle
             }
 
-            val scale = (resultWidth - settings.margin * 2).toDouble() / coroutineDiagram.lastBlockEndsMillis.toDouble()
-
-            val totalHeight = drawDiagram(this, coroutineDiagram, 0, scale)
-            val heightWithAxes = drawAxes(this, resultWidth, totalHeight, scale)
+            val totalHeight = drawDiagram(this, coroutineDiagram, 0)
+            val heightWithAxes = drawAxes(this, resultWidth, totalHeight)
             val heightWithMarks = drawMarksFooter(this, coroutineDiagram, heightWithAxes)
-            height = (heightWithMarks + settings.margin).toString()
+            height = (heightWithMarks + scaler.margin).toString()
         }
+
         val sb = StringBuilder()
         svg.render(sb, SVG.RenderMode.FILE)
         return sb.toString()
@@ -72,12 +33,16 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
     }
 
     private fun drawMarksFooter(svg: SVG, coroutineDiagram: CoroutineDiagram, heightWithAxes: Int): Int {
+        if (coroutineDiagram.allMarksAreInline) {
+            return heightWithAxes
+        }
+
         var yOffset = heightWithAxes
         val marksSettings = settings.marksSettings
 
         coroutineDiagram.marks.forEach { mark ->
             svg.text {
-                x = (settings.margin + marksSettings.footerLineLeftMargin).toString()
+                x = (scaler.margin + marksSettings.footerLineLeftMargin).toString()
                 y = (yOffset + marksSettings.footerLineHeight).toString()
                 fontSize = marksSettings.footerFontSize.toString()
                 body = "[${mark.index}] : ${mark.title}"
@@ -94,15 +59,7 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
         return yOffset
     }
 
-    private fun xCoord(x: Int, scale: Double, offset: Int = 0): String {
-        return (settings.margin + x * scale + offset).toString()
-    }
-
-    private fun xWidth(x: Int, scale: Double): String {
-        return (x * scale).toString()
-    }
-
-    private fun drawAxes(svg: SVG, resultWidth: Int, totalHeight: Int, scale: Double): Int {
+    private fun drawAxes(svg: SVG, resultWidth: Int, totalHeight: Int): Int {
         val axesSettings = settings.axesSettings
         val spaceBetweenSecondAxes = axesSettings.spaceBetweenAxes
         val maxMillisToTitleEveryAxe = axesSettings.maxMillisToTitleEveryAxe
@@ -111,7 +68,7 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
 
         var axeX = 0
         while (axeX < resultWidth) {
-            val xValue = xCoord(axeX, scale)
+            val xValue = scaler.scaleHorizontalCoordinate(axeX)
             svg.line {
                 x1 = xValue
                 y1 = "0"
@@ -124,7 +81,7 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
             }
             if (axeX % axesSpace == 0) {
                 svg.text {
-                    x = xCoord(axeX, scale, -10)
+                    x = scaler.scaleHorizontalCoordinate(axeX, -10)
                     y = (totalHeight + 15).toString()
                     fill = axesSettings.titleColor
                     body = "${axeX}ms"
@@ -140,34 +97,33 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
         yOffset: Int,
-        scale: Double,
     ): Int {
         var endOffset = yOffset
-        val startOffset = yOffset
 
         val parentRect = svg.rect {
-            x = xCoord(coroutineDiagram.startMillis, scale)
+            x = scaler.scaleHorizontalCoordinate(coroutineDiagram.startMillis)
             y = yOffset.toString()
             fill = calculateDiagramColor(coroutineDiagram)
 
-            width = xWidth(coroutineDiagram.durationMillis, scale)
+            width = scaler.scaleWidth(coroutineDiagram.fullBoxWidth - 1)
         }
 
-        endOffset = drawDiagramTitle(coroutineDiagram, svg, scale, yOffset, endOffset)
+        endOffset = drawDiagramTitle(coroutineDiagram, svg, scaler, yOffset, endOffset)
 
         val marksSettings = settings.marksSettings
         if (coroutineDiagram.marks.isNotEmpty()) {
             coroutineDiagram.marks.forEach { mark ->
                 svg.circle {
-                    cx = xCoord(mark.timeMillis, scale)
+                    cx = scaler.scaleHorizontalCoordinate(mark.timeMillis)
                     cy = (endOffset + marksSettings.inlineSectionHeight / 2).toString()
                     r = marksSettings.radius.toString()
                     fill = mark.color
                 }
+                val markText = "[${mark.index}] " + if (mark.drawInlineTitle) mark.title else ""
                 svg.text {
-                    x = xCoord(mark.timeMillis, scale, marksSettings.inlineSectionLeftMargin)
+                    x = scaler.scaleHorizontalCoordinate(mark.timeMillis, marksSettings.inlineSectionLeftMargin)
                     y = (endOffset + marksSettings.inlineSectionFontSize).toString()
-                    body = "[${mark.index}]"
+                    body = markText
                 }
             }
             endOffset += marksSettings.inlineSectionHeight
@@ -176,14 +132,14 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
         coroutineDiagram.childrenRows.forEachIndexed { index, row ->
             var rowOffset = endOffset
             row.children.forEach { childDiagram ->
-                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset, scale))
+                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset))
             }
             endOffset =
                 rowOffset + if (index == coroutineDiagram.childrenRows.size - 1) settings.lastRowMargin else settings.betweenRowMargin
         }
 
 
-        parentRect.height = (endOffset - startOffset).toString()
+        parentRect.height = (endOffset - yOffset).toString()
         svg.rect {
             x = parentRect.x
             y = parentRect.y
@@ -200,7 +156,7 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
     private fun drawDiagramTitle(
         coroutineDiagram: CoroutineDiagram,
         svg: SVG,
-        scale: Double,
+        scaler: HorizontalCoordinateScaler,
         yOffset: Int,
         endOffset: Int
     ): Int {
@@ -208,13 +164,13 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
         val titleSettings = settings.titleSettings
         if (coroutineDiagram.name.isNotBlank()) {
             svg.text {
-                x = xCoord(coroutineDiagram.startMillis, scale, titleSettings.leftMargin)
-                y = (yOffset + titleSettings.fontSize).toString()
+                x = scaler.scaleHorizontalCoordinate(coroutineDiagram.startMillis, titleSettings.leftMargin)
+                y = (yOffset + titleSettings.margin + titleSettings.fontSize).toString()
                 fontSize = titleSettings.fontSize.toString()
                 body = coroutineDiagram.name
             }
 
-            newEndOffset += titleSettings.titleSectionHeight
+            newEndOffset += titleSettings.fontSize + 2 * titleSettings.margin
         } else {
             newEndOffset += titleSettings.noTitleOffset
         }
@@ -222,5 +178,5 @@ class SvgDiagramDrawer(private val settings: SvgRenderingSettings = SvgRendering
     }
 
     private fun calculateDiagramColor(coroutineDiagram: CoroutineDiagram) =
-        settings.mainColor + Integer.toHexString((coroutineDiagram.nestingLevel + 1) * 40)
+        settings.mainColor + Integer.toHexString((coroutineDiagram.nestingLevel + 1) * 35)
 }

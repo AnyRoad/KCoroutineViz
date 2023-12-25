@@ -41,7 +41,8 @@ class DiagramBuilder {
             timeMillis = point.absoluteTimeInMillis,
             title = "${point.description}[thread id=${point.threadId}]",
             color = point.color,
-            index = markIndex
+            index = markIndex,
+            drawInlineTitle = point.drawInlineTitle
         )
 
     private fun splitChildrenIntoRows(

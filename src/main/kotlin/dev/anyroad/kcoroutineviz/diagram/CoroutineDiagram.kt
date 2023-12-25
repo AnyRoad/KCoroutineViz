@@ -6,7 +6,8 @@ data class CoroutineMark(
     val index: Int,
     val timeMillis: Int,
     val title: String,
-    val color: String
+    val color: String,
+    val drawInlineTitle: Boolean = false
 )
 
 data class ChildrenRow(
@@ -26,4 +27,9 @@ data class CoroutineDiagram(
     val endsMillis = startMillis + durationMillis
 
     val lastBlockEndsMillis: Int = max(childrenRows.maxOfOrNull(ChildrenRow::lastBlockEndsMillis) ?: 0, endsMillis)
+
+    val fullBoxWidth = lastBlockEndsMillis - startMillis
+
+    val allMarksAreInline: Boolean = marks.all(CoroutineMark::drawInlineTitle)
+            && childrenRows.all { ch -> ch.children.all(CoroutineDiagram::allMarksAreInline) }
 }
