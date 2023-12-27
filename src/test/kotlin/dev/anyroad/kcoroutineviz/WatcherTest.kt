@@ -50,14 +50,12 @@ class WatcherTest : FunSpec({
         println(w)
         val diagram = DiagramBuilder().buildDiagram(w)
         println(diagram)
-        val scaler = HorizontalCoordinateScaler(diagram.fullBoxWidth, 1024, 10)
-        val drawer = SvgDiagramDrawer(
-            scaler = scaler,
-            axesDrawer = AxesDrawer(SecondAxesSettings()),
-            marksFooterDrawer = MarksFooterDrawer(MarksSettings()),
-            colorCalculator = ColorCalculator(diagram.maxNestingLevel, Triple(64, 192, 64))
+        val drawer = SvgDiagramDrawer.buildDrawer(
+            diagram,
+            1024,
+            SvgRenderingSettings()
         )
-        val svg = drawer.draw(diagram)
+        val svg = drawer.draw()
         println(svg)
         Files.write(Paths.get("src/main/resources/diagram.svg"), listOf(svg))
     }

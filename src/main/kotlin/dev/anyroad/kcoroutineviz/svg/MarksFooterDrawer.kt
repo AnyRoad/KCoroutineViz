@@ -6,12 +6,13 @@ import dev.anyroad.kcoroutineviz.diagram.CoroutineMark
 
 class MarksFooterDrawer(
     private val marksSettings: MarksSettings,
+    private val scaler: HorizontalCoordinateScaler
+
 ) {
     fun drawMarksFooter(
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
         mainPartHeight: Int,
-        scaler: HorizontalCoordinateScaler
     ): Int {
         val allMarks = coroutineDiagram.allMarksIncludingChildren
 

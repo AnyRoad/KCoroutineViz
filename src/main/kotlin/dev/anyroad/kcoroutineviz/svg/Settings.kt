@@ -30,7 +30,8 @@ data class TitleSettings(
 )
 
 data class SvgRenderingSettings(
-    val mainColor: String = "#00DD00",
+    val margin: Int = 10,
+    val darkestColor: Triple<Int, Int, Int> = Triple(64, 192, 64),
     val marksSettings: MarksSettings = MarksSettings(),
     val titleSettings: TitleSettings = TitleSettings(),
     val lastRowMargin: Int = 5,

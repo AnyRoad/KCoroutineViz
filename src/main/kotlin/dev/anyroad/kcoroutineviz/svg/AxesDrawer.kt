@@ -3,9 +3,10 @@ package dev.anyroad.kcoroutineviz.svg
 import com.github.nwillc.ksvg.elements.SVG
 
 class AxesDrawer(
-    private val axesSettings: SecondAxesSettings
+    private val axesSettings: SecondAxesSettings,
+    private val scaler: HorizontalCoordinateScaler
 ) {
-    fun drawAxes(svg: SVG, millisEnd: Int, mainPartHeight: Int, scaler: HorizontalCoordinateScaler): Int {
+    fun drawAxes(svg: SVG, millisEnd: Int, mainPartHeight: Int): Int {
         val spaceBetweenSecondAxes = axesSettings.spaceBetweenAxes
         val maxMillisToTitleEveryAxe = axesSettings.maxMillisToTitleEveryAxe
         val axesSpace =

@@ -5,7 +5,7 @@ class HorizontalCoordinateScaler(
     drawingSize: Int,
     val margin: Int = 10
 ) {
-    private val scale = (drawingSize - margin * 2).toDouble() / actualSize
+    private val scale = (drawingSize - margin * 4).toDouble() / actualSize
 
     fun scaleHorizontalCoordinate(x: Int, offset: Int = 0): String {
         return (margin + x * scale + offset).toString()

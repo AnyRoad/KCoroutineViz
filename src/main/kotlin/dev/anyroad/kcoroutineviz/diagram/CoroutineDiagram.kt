@@ -26,9 +26,9 @@ data class CoroutineDiagram(
     val marks: List<CoroutineMark>,
     val childrenRows: List<ChildrenRow>
 ) {
-    val endsMillis = startMillis + durationMillis
+    private val endsMillis = startMillis + durationMillis
 
-    val lastBlockEndsMillis: Int = max((childrenRows.maxOfOrNull(ChildrenRow::lastBlockEndsMillis) ?: 0) + 1, endsMillis)
+    internal val lastBlockEndsMillis: Int = max(childrenRows.maxOfOrNull(ChildrenRow::lastBlockEndsMillis) ?: 0, endsMillis)
 
     val fullBoxWidth = lastBlockEndsMillis - startMillis
 

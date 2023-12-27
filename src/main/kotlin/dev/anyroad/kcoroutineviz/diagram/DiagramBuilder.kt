@@ -56,7 +56,7 @@ class DiagramBuilder {
 
         for (child in sortedChildren) {
             val diagram = buildDiagramBlock(child, nestingLevel, lastMarkIndex)
-            val rowToInsert = childrenRows.find { it.last().endsMillis <= diagram.startMillis }
+            val rowToInsert = childrenRows.find { it.last().lastBlockEndsMillis <= diagram.startMillis }
                 ?: mutableListOf<CoroutineDiagram>().also(childrenRows::add)
             rowToInsert.add(diagram)
         }
