@@ -54,7 +54,8 @@ class WatcherTest : FunSpec({
         val drawer = SvgDiagramDrawer(
             scaler = scaler,
             axesDrawer = AxesDrawer(SecondAxesSettings()),
-            marksFooterDrawer = MarksFooterDrawer(MarksSettings())
+            marksFooterDrawer = MarksFooterDrawer(MarksSettings()),
+            colorCalculator = ColorCalculator(diagram.maxNestingLevel, Triple(64, 192, 64))
         )
         val svg = drawer.draw(diagram)
         println(svg)

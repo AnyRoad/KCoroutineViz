@@ -26,7 +26,7 @@ class AxesDrawer(
             }
             if (axeX % axesSpace == 0) {
                 svg.text {
-                    x = scaler.scaleHorizontalCoordinate(axeX, -10)
+                    x = scaler.scaleHorizontalCoordinate(axeX, if (axeX < 1000) -10 else -20)
                     y = (mainPartHeight + axesSettings.fontSize + axesSettings.margin).toString()
                     fill = axesSettings.titleColor
                     body = "${axeX}ms"

@@ -8,19 +8,19 @@ class SvgDiagramDrawer(
     private val settings: SvgRenderingSettings = SvgRenderingSettings(),
     private val scaler: HorizontalCoordinateScaler,
     private val axesDrawer: AxesDrawer,
-    private val marksFooterDrawer: MarksFooterDrawer
+    private val marksFooterDrawer: MarksFooterDrawer,
+    private val colorCalculator: ColorCalculator
 ) {
 
     fun draw(coroutineDiagram: CoroutineDiagram): String {
         val svg = SVG.svg(true) {
-            val resultWidth = coroutineDiagram.lastBlockEndsMillis
+            val resultWidth = coroutineDiagram.fullBoxWidth
             width = scaler.scaleFullWidth(resultWidth)
             style {
                 body = settings.bodyStyle
             }
-            val levelTransparencyStep = 255 / coroutineDiagram.maxNestingLevel
 
-            val totalHeight = drawDiagram(this, coroutineDiagram, 0, levelTransparencyStep)
+            val totalHeight = drawDiagram(this, coroutineDiagram, 0)
             val heightWithAxes = totalHeight + axesDrawer.drawAxes(this, resultWidth, totalHeight, scaler)
             val heightWithMarks = heightWithAxes + marksFooterDrawer.drawMarksFooter(this, coroutineDiagram, heightWithAxes, scaler)
             height = (heightWithMarks + scaler.margin).toString()
@@ -39,16 +39,15 @@ class SvgDiagramDrawer(
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
         yOffset: Int,
-        levelTransparencyStep: Int,
     ): Int {
         var endOffset = yOffset
 
         val parentRect = svg.rect {
             x = scaler.scaleHorizontalCoordinate(coroutineDiagram.startMillis)
             y = yOffset.toString()
-            fill = calculateDiagramColor(coroutineDiagram, levelTransparencyStep)
+            fill = colorCalculator.colorForNestingLevel(coroutineDiagram.nestingLevel)
 
-            width = scaler.scaleWidth(coroutineDiagram.fullBoxWidth - 1)
+            width = scaler.scaleWidth(coroutineDiagram.fullBoxWidth)
         }
 
         endOffset = drawDiagramTitle(coroutineDiagram, svg, scaler, yOffset, endOffset)
@@ -75,7 +74,7 @@ class SvgDiagramDrawer(
         coroutineDiagram.childrenRows.forEachIndexed { index, row ->
             var rowOffset = endOffset
             row.children.forEach { childDiagram ->
-                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset, levelTransparencyStep))
+                rowOffset = max(rowOffset, drawDiagram(svg, childDiagram, endOffset))
             }
             endOffset =
                 rowOffset + if (index == coroutineDiagram.childrenRows.size - 1) settings.lastRowMargin else settings.betweenRowMargin
@@ -118,14 +117,5 @@ class SvgDiagramDrawer(
             newEndOffset += titleSettings.noTitleOffset
         }
         return newEndOffset
-    }
-
-    private fun calculateDiagramColor(coroutineDiagram: CoroutineDiagram, levelTransparencyStep: Int): String {
-        val transparency = when(coroutineDiagram.nestingLevel) {
-            0 -> levelTransparencyStep / 4
-            else -> levelTransparencyStep
-        }
-        val transparencyHex = Integer.toHexString(transparency)
-        return settings.mainColor + (if (transparencyHex.length == 1) "0" else "") + transparencyHex
     }
 }
