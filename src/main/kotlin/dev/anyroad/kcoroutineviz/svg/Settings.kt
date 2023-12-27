@@ -37,7 +37,6 @@ data class SvgRenderingSettings(
     val lastRowMargin: Int = 5,
     val betweenRowMargin: Int = 10,
     val bodyStyle: String = """
-         svg .black-stroke { stroke: black; stroke-width: 2; }
-         svg .fur-color { fill: white; }
-     """.trimIndent()
+        
+    """.trimIndent()
 )

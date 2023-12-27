@@ -34,12 +34,14 @@ class DiagramBodyDrawer(
                     cy = (endOffset + marksSettings.inlineSectionHeight / 2).toString()
                     r = marksSettings.radius.toString()
                     fill = mark.color
+                    children.add(title(mark.title))
                 }
                 val markText = "[${mark.index}] " + if (mark.drawInlineTitle) mark.title else ""
                 svg.text {
                     x = scaler.scaleHorizontalCoordinate(mark.timeMillis, marksSettings.inlineSectionLeftMargin)
                     y = (endOffset + marksSettings.inlineSectionFontSize).toString()
                     body = markText
+                    children.add(title(mark.title))
                 }
             }
             endOffset += marksSettings.inlineSectionHeight
