@@ -9,6 +9,10 @@ class MarksFooterDrawer(
     private val scaler: HorizontalCoordinateScaler
 
 ) {
+    companion object {
+        const val MARK_TITLE_STYLE = "mark-footer-title"
+    }
+
     fun drawMarksFooter(
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
@@ -28,6 +32,7 @@ class MarksFooterDrawer(
                 y = (yOffset + marksSettings.footerLineHeight).toString()
                 fontSize = marksSettings.footerFontSize.toString()
                 body = "[${mark.index}] : ${mark.title}"
+                cssClass = MARK_TITLE_STYLE
             }
             yOffset += marksSettings.footerLineHeight
         }

@@ -6,6 +6,7 @@ import dev.anyroad.kcoroutineviz.watcher.Watcher.Companion.watcher
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -27,7 +28,7 @@ class WatcherTest : FunSpec({
                     delay(300)
                 }
                 val d3 = async {
-                    delay(300)
+                    sleep(300)
                 }
                 awaitAll(d1, d2, d3)
             }
@@ -52,12 +53,21 @@ class WatcherTest : FunSpec({
         println(diagram)
         val drawer = SvgDiagramDrawer.buildDrawer(
             diagram,
-            1024,
+            800,
             SvgRenderingSettings()
         )
         val svg = drawer.draw()
         println(svg)
-        Files.write(Paths.get("src/main/resources/diagram.svg"), listOf(svg))
+        Files.write(
+            Paths.get("src/main/resources/diagram.html"), listOf(
+                "<html>",
+                "<body>",
+                svg,
+                "</body>",
+                "</html>",
+            ),
+            Charset.forName("UTF-8")
+        )
     }
 
 })

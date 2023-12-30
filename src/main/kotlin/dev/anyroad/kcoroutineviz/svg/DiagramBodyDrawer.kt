@@ -6,9 +6,16 @@ import kotlin.math.max
 
 class DiagramBodyDrawer(
     private val settings: SvgRenderingSettings,
-    private val colorCalculator: ColorCalculator,
     private val scaler: HorizontalCoordinateScaler
 ) {
+    companion object {
+        const val DIAGRAM_BLOCK_STYLE_PREFIX = "diagram-level-"
+        const val DIAGRAM_BORDER_STYLE = "diagram-border"
+        const val DIAGRAM_TITLE_STYLE = "diagram-title"
+        const val MARK_CIRCLE_STYLE = "mark-circle"
+        const val MARK_INLINE_TITLE_STYLE = "mark-title-inline"
+    }
+
     fun drawDiagram(
         svg: SVG,
         coroutineDiagram: CoroutineDiagram,
@@ -19,7 +26,7 @@ class DiagramBodyDrawer(
         val parentRect = svg.rect {
             x = scaler.scaleHorizontalCoordinate(coroutineDiagram.startMillis)
             y = yOffset.toString()
-            fill = colorCalculator.colorForNestingLevel(coroutineDiagram.nestingLevel)
+            cssClass="$DIAGRAM_BLOCK_STYLE_PREFIX${coroutineDiagram.nestingLevel}"
 
             width = scaler.scaleWidth(coroutineDiagram.fullBoxWidth)
         }
@@ -33,7 +40,7 @@ class DiagramBodyDrawer(
                     cx = scaler.scaleHorizontalCoordinate(mark.timeMillis)
                     cy = (endOffset + marksSettings.inlineSectionHeight / 2).toString()
                     r = marksSettings.radius.toString()
-                    fill = mark.color
+                    cssClass = MARK_CIRCLE_STYLE
                     children.add(title(mark.title))
                 }
                 val markText = "[${mark.index}] " + if (mark.drawInlineTitle) mark.title else ""
@@ -42,6 +49,7 @@ class DiagramBodyDrawer(
                     y = (endOffset + marksSettings.inlineSectionFontSize).toString()
                     body = markText
                     children.add(title(mark.title))
+                    cssClass = MARK_INLINE_TITLE_STYLE
                 }
             }
             endOffset += marksSettings.inlineSectionHeight
@@ -63,9 +71,7 @@ class DiagramBodyDrawer(
             y = parentRect.y
             width = parentRect.width
             height = parentRect.height
-            stroke = "black"
-            strokeWidth = "1"
-            fill = "none"
+            cssClass = DIAGRAM_BORDER_STYLE
         }
 
         return endOffset
@@ -86,6 +92,7 @@ class DiagramBodyDrawer(
                 y = (yOffset + titleSettings.margin + titleSettings.fontSize).toString()
                 fontSize = titleSettings.fontSize.toString()
                 body = coroutineDiagram.name
+                cssClass = DIAGRAM_TITLE_STYLE
             }
 
             newEndOffset += titleSettings.fontSize + 2 * titleSettings.margin

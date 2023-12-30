@@ -6,6 +6,11 @@ class AxesDrawer(
     private val axesSettings: SecondAxesSettings,
     private val scaler: HorizontalCoordinateScaler
 ) {
+    companion object {
+        const val AXE_LINE_STYLE = "seconds-axe-line"
+        const val AXE_VALUE_STYLE = "seconds-axe-value"
+    }
+
     fun drawAxes(svg: SVG, millisEnd: Int, mainPartHeight: Int): Int {
         val spaceBetweenSecondAxes = axesSettings.spaceBetweenAxes
         val maxMillisToTitleEveryAxe = axesSettings.maxMillisToTitleEveryAxe
@@ -22,15 +27,14 @@ class AxesDrawer(
                 x2 = xValue
                 y2 = mainPartHeight.toString()
 
-                stroke = axesSettings.color
-                attributes["stroke-dasharray"] = axesSettings.lineDashStroke
+                cssClass= AXE_LINE_STYLE
             }
             if (axeX % axesSpace == 0) {
                 svg.text {
                     x = scaler.scaleHorizontalCoordinate(axeX, if (axeX < 1000) -10 else -20)
                     y = (mainPartHeight + axesSettings.fontSize + axesSettings.margin).toString()
-                    fill = axesSettings.titleColor
                     body = "${axeX}ms"
+                    cssClass = AXE_VALUE_STYLE
                 }
             }
             axeX += axesSettings.spaceBetweenAxes
