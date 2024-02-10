@@ -27,11 +27,11 @@ class AxesDrawer(
                 x2 = xValue
                 y2 = mainPartHeight.toString()
 
-                cssClass= AXE_LINE_STYLE
+                cssClass = AXE_LINE_STYLE
             }
             if (axeX % axesSpace == 0) {
                 svg.text {
-                    x = scaler.scaleHorizontalCoordinate(axeX, if (axeX < 1000) -10 else -20)
+                    x = scaler.scaleHorizontalCoordinate(axeX, if (axeX < 1000) -15 else -20)
                     y = (mainPartHeight + axesSettings.fontSize + axesSettings.margin).toString()
                     body = "${axeX}ms"
                     cssClass = AXE_VALUE_STYLE

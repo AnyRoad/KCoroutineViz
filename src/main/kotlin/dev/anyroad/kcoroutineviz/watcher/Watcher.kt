@@ -92,11 +92,10 @@ class Watcher(
         }
     }
 
-    fun addTracePoint(description: String, color: String = "red", drawInlineTitle: Boolean = false) {
+    fun addTracePoint(description: String, drawInlineTitle: Boolean = false) {
         val point = TracePoint(
             timeElapsed = absoluteTimeStart + timeMark.elapsedNow(),
             description = description,
-            color = color,
             drawInlineTitle = drawInlineTitle
         )
         tracePoints.add(point)

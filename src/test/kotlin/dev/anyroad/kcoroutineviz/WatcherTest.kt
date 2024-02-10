@@ -13,7 +13,7 @@ import java.nio.file.Paths
 class WatcherTest : FunSpec({
     test("my first test") {
         val w = watcher("async test") {
-            addTracePoint("before the start", "blue", true)
+            addTracePoint("before the start", true)
             watch("just call delay") {
                 delay(100)
                 delay(100)
@@ -35,7 +35,7 @@ class WatcherTest : FunSpec({
 
             watch("3") {
                 delay(100)
-                addTracePoint("another point", "green", true)
+                addTracePoint("another point", true)
                 watch("4") {
                     delay(100)
                     watch("5") {

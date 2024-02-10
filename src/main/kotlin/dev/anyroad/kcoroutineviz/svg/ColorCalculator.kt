@@ -3,8 +3,8 @@ package dev.anyroad.kcoroutineviz.svg
 import kotlin.math.min
 
 class ColorCalculator(
-    private val maxNestingLevel: Int,
-    private val darkestColor: Triple<Int, Int, Int>
+    maxNestingLevel: Int,
+    darkestColor: Triple<Int, Int, Int>
 ) {
     companion object {
         private const val MAX_COLOR_VALUE = 255

@@ -6,7 +6,6 @@ data class CoroutineMark(
     val index: Int,
     val timeMillis: Int,
     val title: String,
-    val color: String,
     val drawInlineTitle: Boolean = false
 )
 

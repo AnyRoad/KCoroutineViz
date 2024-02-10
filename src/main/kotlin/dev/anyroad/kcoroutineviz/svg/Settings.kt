@@ -13,7 +13,7 @@ data class SecondAxesSettings(
 data class MarksSettings(
     val color: String = "green",
     val radius: Int = 4,
-    val titleColor: String = "orange",
+    val titleColor: String = "rgb(217 119 6)",
     val markSectionHeight: Int = 20,
     val inlineSectionHeight: Int = 20,
     val inlineSectionFontSize: Int = 14,

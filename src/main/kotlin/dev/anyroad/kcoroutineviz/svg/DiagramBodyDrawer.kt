@@ -35,23 +35,7 @@ class DiagramBodyDrawer(
 
         val marksSettings = settings.marksSettings
         if (coroutineDiagram.marks.isNotEmpty()) {
-            coroutineDiagram.marks.forEach { mark ->
-                svg.circle {
-                    cx = scaler.scaleHorizontalCoordinate(mark.timeMillis)
-                    cy = (endOffset + marksSettings.inlineSectionHeight / 2).toString()
-                    r = marksSettings.radius.toString()
-                    cssClass = MARK_CIRCLE_STYLE
-                    children.add(title(mark.title))
-                }
-                val markText = "[${mark.index}] " + if (mark.drawInlineTitle) mark.title else ""
-                svg.text {
-                    x = scaler.scaleHorizontalCoordinate(mark.timeMillis, marksSettings.inlineSectionLeftMargin)
-                    y = (endOffset + marksSettings.inlineSectionFontSize).toString()
-                    body = markText
-                    children.add(title(mark.title))
-                    cssClass = MARK_INLINE_TITLE_STYLE
-                }
-            }
+            drawMarks(coroutineDiagram, svg, endOffset)
             endOffset += marksSettings.inlineSectionHeight
         }
 
@@ -75,6 +59,32 @@ class DiagramBodyDrawer(
         }
 
         return endOffset
+    }
+
+    private fun drawMarks(
+        coroutineDiagram: CoroutineDiagram,
+        svg: SVG,
+        endOffset: Int
+    ) {
+        val marksSettings = settings.marksSettings
+
+        coroutineDiagram.marks.forEach { mark ->
+            svg.circle {
+                cx = scaler.scaleHorizontalCoordinate(mark.timeMillis)
+                cy = (endOffset + marksSettings.inlineSectionHeight / 2).toString()
+                r = marksSettings.radius.toString()
+                cssClass = MARK_CIRCLE_STYLE
+                children.add(title(mark.title))
+            }
+            val markText = "[${mark.index}] " + if (mark.drawInlineTitle) mark.title else ""
+            svg.text {
+                x = scaler.scaleHorizontalCoordinate(mark.timeMillis, marksSettings.inlineSectionLeftMargin)
+                y = (endOffset + marksSettings.inlineSectionFontSize).toString()
+                body = markText
+                children.add(title(mark.title))
+                cssClass = MARK_INLINE_TITLE_STYLE
+            }
+        }
     }
 
     private fun drawDiagramTitle(

@@ -40,7 +40,6 @@ class DiagramBuilder {
         CoroutineMark(
             timeMillis = point.absoluteTimeInMillis,
             title = "${point.description}[tid=${point.threadId}]",
-            color = point.color,
             index = markIndex,
             drawInlineTitle = point.drawInlineTitle
         )
